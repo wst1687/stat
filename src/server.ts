@@ -18,10 +18,12 @@ const auth = new google.auth.GoogleAuth({
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
 });
 
+app.use(express.text());
+
 app.post("/webhook", async (req, res) => {
     try {
-        const formData = req.body; 
-        console.log(req.body);
+        const formData = req.body.data; 
+        console.log(formData);
     } catch (error) {
         console.error("Error:", error);
         res.status(500).json({ error: "Error occured" });
