@@ -21,7 +21,7 @@ const auth = new google.auth.GoogleAuth({
 app.post("/webhook", async (req, res) => {
     try {
         const formData = req.body; 
-        console.log(formData);
+        console.log(req);
     } catch (error) {
         console.error("Error:", error);
         res.status(500).json({ error: "Error occured" });
