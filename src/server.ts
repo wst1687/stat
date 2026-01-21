@@ -22,7 +22,7 @@ app.get("/api/results_time", async (_req: Request, res: Response): Promise<void>
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.SHEET_ID!,
-      range: "Sheet1!H1:H100",
+      range: "CONSTRUCTION!H1:H100",
     });
 
     const rows = response.data.values;

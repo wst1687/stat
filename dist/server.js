@@ -33,7 +33,7 @@ app.get("/api/results_time", (_req, res) => __awaiter(void 0, void 0, void 0, fu
     try {
         const response = yield sheets.spreadsheets.values.get({
             spreadsheetId: process.env.SHEET_ID,
-            range: "Sheet1!H1:H100",
+            range: "CONSTRUCTION!H1:H100",
         });
         const rows = response.data.values;
         if (!rows || rows.length < 2) {
