@@ -14,29 +14,48 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
 const googleapis_1 = require("googleapis");
-const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
 const app = (0, express_1.default)();
-const PORT = process.env.PORT || 3000;
+app.use((0, cors_1.default)());
+app.use(express_1.default.json());
 const auth = new googleapis_1.google.auth.GoogleAuth({
     credentials: {
         type: "service_account",
         project_id: process.env.GOOGLE_PROJECT_ID,
         private_key: (_a = process.env.GOOGLE_PRIVATE_KEY) === null || _a === void 0 ? void 0 : _a.replace(/\\n/g, "\n"),
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        client_id: process.env.GOOGLE_CLIENT_ID,
     },
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
 });
-app.post("/webhook", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const sheets = googleapis_1.google.sheets({ version: "v4", auth });
+app.get("/api/results_time", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const formData = req.body;
-        console.log(formData);
+        const response = yield sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.SHEET_ID,
+            range: "Sheet1!H1:H100",
+        });
+        const rows = response.data.values;
+        if (!rows || rows.length < 2) {
+            res.json([]);
+            return;
+        }
+        const headers = rows[0];
+        const dataRows = rows.slice(1);
+        const result = dataRows.map(row => {
+            const obj = {};
+            headers.forEach((header, index) => {
+                var _a;
+                obj[header] = (_a = row[index]) !== null && _a !== void 0 ? _a : "";
+            });
+            return obj;
+        });
+        res.json(result);
     }
-    catch (error) {
-        console.error("Error:", error);
-        res.status(500).json({ error: "Error occured" });
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to read sheet" });
     }
 }));
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Backend running on ${PORT}`));
