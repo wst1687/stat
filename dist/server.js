@@ -31,6 +31,12 @@ const auth = new googleapis_1.google.auth.GoogleAuth({
 const sheets = googleapis_1.google.sheets({ version: "v4", auth });
 app.get("/api/results_time", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const tabs = ["CONSTRUCTION", "RESEARCH", "TRAINING"];
+        const responses = yield Promise.all(tabs.map((v) => sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.SHEET_ID,
+            range: `${v}!H1:H100`,
+        })));
+        const [constr_times, research_times, training_times] = responses;
         const response = yield sheets.spreadsheets.values.get({
             spreadsheetId: process.env.SHEET_ID,
             range: "CONSTRUCTION!H1:H100",
@@ -42,7 +48,7 @@ app.get("/api/results_time", (_req, res) => __awaiter(void 0, void 0, void 0, fu
         }
         const headers = rows[0];
         const dataRows = rows.slice(1);
-        const result = dataRows.map(row => {
+        const result = dataRows.map((row) => {
             const obj = {};
             headers.forEach((header, index) => {
                 var _a;
@@ -50,6 +56,15 @@ app.get("/api/results_time", (_req, res) => __awaiter(void 0, void 0, void 0, fu
             });
             return obj;
         });
+        function getData(resp) {
+            const rows = resp.data.values;
+            if (!rows || rows.length < 2) {
+                res.json([]);
+                return;
+            }
+            const dataRows = rows.slice(1);
+            return dataRows;
+        }
         res.json(result);
     }
     catch (err) {

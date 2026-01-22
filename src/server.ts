@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { google } from "googleapis";
+import type { GaxiosResponse } from "gaxios";
 
 const app = express();
 app.use(cors());
@@ -18,36 +19,64 @@ const auth = new google.auth.GoogleAuth({
 
 const sheets = google.sheets({ version: "v4", auth });
 
-app.get("/api/results_time", async (_req: Request, res: Response): Promise<void> => {
-  try {
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: process.env.SHEET_ID!,
-      range: "CONSTRUCTION!H1:H100",
-    });
+app.get(
+  "/api/results_time",
+  async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const tabs = ["CONSTRUCTION", "RESEARCH", "TRAINING"];
 
-    const rows = response.data.values;
-    if (!rows || rows.length < 2) {
-      res.json([]);
-      return;
-    }
+      const responses = await Promise.all(
+        tabs.map((v) =>
+          sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.SHEET_ID!,
+            range: `${v}!H1:H100`,
+          }),
+        ),
+      );
 
-    const headers = rows[0];
-    const dataRows = rows.slice(1);
+      const [constr_times, research_times, training_times] = responses;
 
-    const result = dataRows.map(row => {
-      const obj: Record<string, string> = {};
-      headers.forEach((header, index) => {
-        obj[header] = row[index] ?? "";
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: process.env.SHEET_ID!,
+        range: "CONSTRUCTION!H1:H100",
       });
-      return obj;
-    });
 
-    res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to read sheet" });
-  }
-});
+      const rows = response.data.values;
+      if (!rows || rows.length < 2) {
+        res.json([]);
+        return;
+      }
+
+      const headers = rows[0];
+      const dataRows = rows.slice(1);
+
+      const result = dataRows.map((row) => {
+        const obj: Record<string, string> = {};
+        headers.forEach((header, index) => {
+          obj[header] = row[index] ?? "";
+        });
+        return obj;
+      });
+
+      function getData(resp: GaxiosResponse) {
+        const rows = resp.data.values;
+        if (!rows || rows.length < 2) {
+          res.json([]);
+          return;
+        }
+
+        const dataRows = rows.slice(1);
+
+        return dataRows;
+      }
+
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to read sheet" });
+    }
+  },
+);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Backend running on ${PORT}`));
