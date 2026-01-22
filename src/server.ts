@@ -34,37 +34,13 @@ app.get(
         ),
       );
 
-      // const [constr_times, research_times, training_times] = responses;
-
-      // const response = await sheets.spreadsheets.values.get({
-      //   spreadsheetId: process.env.SHEET_ID!,
-      //   range: "CONSTRUCTION!H1:H100",
-      // });
-
-      // const rows = response.data.values;
-      // if (!rows || rows.length < 2) {
-      //   res.json([]);
-      //   return;
-      // }
-
-      // const headers = rows[0];
-      // const dataRows = rows.slice(1);
-
-      // const result = dataRows.map((row) => {
-      //   const obj: Record<string, string> = {};
-      //   headers.forEach((header, index) => {
-      //     obj[header] = row[index] ?? "";
-      //   });
-      //   return obj;
-      // });
-
       function getData(resp: GaxiosResponse) {
         const rows = resp.data.values;
         if (!rows || rows.length < 2) {
           return [];
         }
-        const dataRows = rows.slice(1);
-        return dataRows;
+        const dataRows: string[][] = rows.slice(1);
+        return dataRows.map(el => el[0]);
       }
 
       const result = tabs.map((tab, index) => [tab, getData(responses[index])]) 

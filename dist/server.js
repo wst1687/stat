@@ -36,32 +36,13 @@ app.get("/api/results_time", (_req, res) => __awaiter(void 0, void 0, void 0, fu
             spreadsheetId: process.env.SHEET_ID,
             range: `${v}!H1:H100`,
         })));
-        // const [constr_times, research_times, training_times] = responses;
-        // const response = await sheets.spreadsheets.values.get({
-        //   spreadsheetId: process.env.SHEET_ID!,
-        //   range: "CONSTRUCTION!H1:H100",
-        // });
-        // const rows = response.data.values;
-        // if (!rows || rows.length < 2) {
-        //   res.json([]);
-        //   return;
-        // }
-        // const headers = rows[0];
-        // const dataRows = rows.slice(1);
-        // const result = dataRows.map((row) => {
-        //   const obj: Record<string, string> = {};
-        //   headers.forEach((header, index) => {
-        //     obj[header] = row[index] ?? "";
-        //   });
-        //   return obj;
-        // });
         function getData(resp) {
             const rows = resp.data.values;
             if (!rows || rows.length < 2) {
                 return [];
             }
             const dataRows = rows.slice(1);
-            return dataRows;
+            return dataRows.map(el => el[0]);
         }
         const result = tabs.map((tab, index) => [tab, getData(responses[index])]);
         res.json(result);
