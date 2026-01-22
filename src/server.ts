@@ -40,6 +40,15 @@ app.get(
           return [];
         }
         const dataRows: string[][] = rows.slice(1);
+        const objRow = dataRows.reduce((acc, val) => {
+          const obj = {
+            id: val[1],
+            name: val[2]
+          }
+          acc.set(val[0], obj);
+          return acc;
+        }, new Map() as Map<string, {id: string, name: string}>);
+        console.log(objRow);
         return dataRows;
       }
 

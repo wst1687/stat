@@ -42,6 +42,15 @@ app.get("/api/appointments", (_req, res) => __awaiter(void 0, void 0, void 0, fu
                 return [];
             }
             const dataRows = rows.slice(1);
+            const objRow = dataRows.reduce((acc, val) => {
+                const obj = {
+                    id: val[1],
+                    name: val[2]
+                };
+                acc.set(val[0], obj);
+                return acc;
+            }, new Map());
+            console.log(objRow);
             return dataRows;
         }
         // const result = tabs.map((tab, index) => [tab, getData(responses[index])])
