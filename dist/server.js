@@ -44,7 +44,11 @@ app.get("/api/appointments", (_req, res) => __awaiter(void 0, void 0, void 0, fu
             const dataRows = rows.slice(1);
             return dataRows;
         }
-        const result = tabs.map((tab, index) => [tab, getData(responses[index])]);
+        // const result = tabs.map((tab, index) => [tab, getData(responses[index])])
+        const result = tabs.reduce((acc, tab, index) => {
+            acc[tab] = getData(responses[index]);
+            return acc;
+        }, {});
         res.json(result);
     }
     catch (err) {
@@ -65,9 +69,13 @@ app.get("/api/time_slots", (_req, res) => __awaiter(void 0, void 0, void 0, func
                 return [];
             }
             const dataRows = rows.slice(1);
-            return dataRows.map(el => el[0]);
+            return dataRows.map((el) => el[0]);
         }
-        const result = tabs.map((tab, index) => [tab, getData(responses[index])]);
+        // const result = tabs.map((tab, index) => [tab, getData(responses[index])])
+        const result = tabs.reduce((acc, tab, index) => {
+            acc[tab] = getData(responses[index]);
+            return acc;
+        }, {});
         res.json(result);
     }
     catch (err) {
