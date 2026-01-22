@@ -20,7 +20,41 @@ const auth = new google.auth.GoogleAuth({
 const sheets = google.sheets({ version: "v4", auth });
 
 app.get(
-  "/api/results_time",
+  "/api/appointments",
+  async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const tabs = ["CONSTRUCTION", "RESEARCH", "TRAINING"];
+
+      const responses = await Promise.all(
+        tabs.map((v) =>
+          sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.SHEET_ID!,
+            range: `${v}!A1:C100`,
+          }),
+        ),
+      );
+
+      function getData(resp: GaxiosResponse) {
+        const rows = resp.data.values;
+        if (!rows || rows.length < 2) {
+          return [];
+        }
+        const dataRows: string[][] = rows.slice(1);
+        return dataRows;
+      }
+
+      const result = tabs.map((tab, index) => [tab, getData(responses[index])]) 
+
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to read sheet" });
+    }
+  },
+);
+
+app.get(
+  "/api/time_slots",
   async (_req: Request, res: Response): Promise<void> => {
     try {
       const tabs = ["CONSTRUCTION", "RESEARCH", "TRAINING"];

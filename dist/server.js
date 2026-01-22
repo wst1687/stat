@@ -29,7 +29,30 @@ const auth = new googleapis_1.google.auth.GoogleAuth({
     scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
 });
 const sheets = googleapis_1.google.sheets({ version: "v4", auth });
-app.get("/api/results_time", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get("/api/appointments", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const tabs = ["CONSTRUCTION", "RESEARCH", "TRAINING"];
+        const responses = yield Promise.all(tabs.map((v) => sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.SHEET_ID,
+            range: `${v}!A1:C100`,
+        })));
+        function getData(resp) {
+            const rows = resp.data.values;
+            if (!rows || rows.length < 2) {
+                return [];
+            }
+            const dataRows = rows.slice(1);
+            return dataRows;
+        }
+        const result = tabs.map((tab, index) => [tab, getData(responses[index])]);
+        res.json(result);
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to read sheet" });
+    }
+}));
+app.get("/api/time_slots", (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const tabs = ["CONSTRUCTION", "RESEARCH", "TRAINING"];
         const responses = yield Promise.all(tabs.map((v) => sheets.spreadsheets.values.get({
